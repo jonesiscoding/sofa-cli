@@ -9,6 +9,13 @@ selfOut="$selfDir/../dist"
 [ ! -f "$selfLib/inline.sh" ] && curl -s -o "$selfLib/inline.sh" https://raw.githubusercontent.com/carlocorradini/inline/main/inline.sh && chmod 755 "$selfLib/inline.sh"
 fileScripts=("$selfDir/../src/sofa")
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS (BSD sed) requires '' after -i
+  xSED=(sed -i '')
+else
+  xSED=(sed -i)
+fi
+
 ## region ###################################### Functions
 
 function script::build() {
@@ -23,7 +30,7 @@ function script::build() {
     return 1
   fi
 
-  sed -i '' -e "1 s/$placeholder/$outVersion/; t" -e "1,// s//$outVersion/" "$outFile"
+  "${xSED[@]}" -e "1 s/$placeholder/$outVersion/; t" -e "1,// s//$outVersion/" "$outFile"
 
   chmod 755 "$outFile"
 }
@@ -37,18 +44,21 @@ function script::metadata() {
   tUser="${4:-$USER}"
 
   if [ -f "$tFile" ]; then
-
     if [ -n "$tRev" ]; then
-      sed -i '' "s/# @revision$/# @revision $tRev/" "$tFile"
+      "${xSED[@]}" "s/# @revision$/# @revision $tRev/" "$tFile"
+    fi
+
+    if [ -n "$versionOut" ]; then
+      "${xSED[@]}" "s/# @version/# @version $versionOut/" "$tFile"
     fi
 
     if [ -n "$tDate" ]; then
       if [ -n "$tUser" ]; then
-        sed -i '' "s/# @built$/# @built $tDate ($tUser)/" "$tFile"
-        sed -i '' "s/# @uploaded$/# @built $tDate ($tUser)/" "$tFile"
+        "${xSED[@]}" "s/# @built$/# @built $tDate ($tUser)/" "$tFile"
+        "${xSED[@]}" "s/# @uploaded$/# @built $tDate ($tUser)/" "$tFile"
       else
-        sed -i '' "s/# @built$/# @built $tDate/" "$tFile"
-        sed -i '' "s/# @uploaded$/# @uploaded $tDate/" "$tFile"
+        "${xSED[@]}" "s/# @built$/# @built $tDate/" "$tFile"
+        "${xSED[@]}" "s/# @uploaded$/# @uploaded $tDate/" "$tFile"
       fi
     fi
   fi
