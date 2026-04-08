@@ -6,6 +6,7 @@
 # comparisons, as well as the output of a single matching SecurityRelease JSON object or property therein.
 #
 # This tool is not endorsed by or affiliated with the macadmins/sofa project.
+# This tool requires that 'jq' is installed, this is standard on macOS 15+
 #
 # @option --version Displays Version
 # @option --device [optional_device]  Filter JSON by Device ID; will detect from system if not given
@@ -53,7 +54,7 @@ function output-usage() {
   echo "  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons"
   echo "  as well as the output of a single matching SecurityRelease JSON object or property therein."
   echo ""
-  output-blue "Syntax:"
+  echo "Syntax:"
   echo ""
   echo "  sofa                                            (Displays the unfiltered SOFA feed)"
   echo "  sofa --device --next 26.3.1 '.Product Version'  (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)"
@@ -61,7 +62,9 @@ function output-usage() {
   echo "  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)"
   echo "  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)"
   echo ""
-  output-blue "Filter Flags"
+  echo "Query language appropriate for JQ may be used after any flags to further filter results."
+  echo ""
+  echo "Filter Flags"
   echo ""
   echo "  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given"
   echo "  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given"
