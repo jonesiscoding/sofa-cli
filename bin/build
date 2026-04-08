@@ -1,0 +1,91 @@
+#!/bin/bash
+
+padding="----------------------------------------------------------------------------"
+selfDir="$( cd "$(/usr/bin/dirname "${BASH_SOURCE[0]}")" ; /bin/pwd -P )"
+selfLib="$selfDir/lib"
+selfOut="$selfDir/../dist"
+[ ! -f "$selfLib" ] && mkdir -p "$selfLib"
+[ ! -f "$selfOut" ] && mkdir -p "$selfOut"
+[ ! -f "$selfLib/inline.sh" ] && curl -s -o "$selfLib/inline.sh" https://raw.githubusercontent.com/carlocorradini/inline/main/inline.sh && chmod 755 "$selfLib/inline.sh"
+fileScripts=("$selfDir/../src/sofa")
+
+## region ###################################### Functions
+
+function script::build() {
+  local inFile outFile  placeholder outVersion cwd
+
+  inFile="$1"
+  outFile="$2"
+  outVersion="${3-:1.0}"
+  placeholder="${4-:##VERSION##}"
+
+  if ! "$selfLib/inline.sh" --in-file "$inFile" --out-file "$outFile" --log-level silent; then
+    return 1
+  fi
+
+  sed -i '' -e "1 s/$placeholder/$outVersion/; t" -e "1,// s//$outVersion/" "$outFile"
+
+  chmod 755 "$outFile"
+}
+
+function script::metadata() {
+  local tFile tRev tDate tUser
+
+  tFile="$1"
+  tRev="${2}"
+  tDate="${3}"
+  tUser="${4:-$USER}"
+
+  if [ -f "$tFile" ]; then
+
+    if [ -n "$tRev" ]; then
+      sed -i '' "s/# @revision$/# @revision $tRev/" "$tFile"
+    fi
+
+    if [ -n "$tDate" ]; then
+      if [ -n "$tUser" ]; then
+        sed -i '' "s/# @built$/# @built $tDate ($tUser)/" "$tFile"
+        sed -i '' "s/# @uploaded$/# @built $tDate ($tUser)/" "$tFile"
+      else
+        sed -i '' "s/# @built$/# @built $tDate/" "$tFile"
+        sed -i '' "s/# @uploaded$/# @uploaded $tDate/" "$tFile"
+      fi
+    fi
+  fi
+}
+
+## endregion ################################### Functions
+
+## region ###################################### Main Code
+
+versionOut="$1"
+echo "Handling Scripts..."
+for file in "${fileScripts[@]}"
+do
+  filename=$(basename "$file")
+  echo "  Processing $file..."
+  if [ ! -f "$file" ]; then
+    echo "  ERROR: File does not exist!"
+    exit 1
+  else
+    fileOut="$selfOut/$filename"
+    [ -f "$fileOut" ] && rm "$fileOut"
+    out="    Building $filename"
+    printf "%s %s " "$out" "${padding:${#out}}"
+    if ! script::build "$file" "$fileOut" "$versionOut" ; then
+      echo "ERROR"
+      exit 1
+    fi
+    echo "DONE"
+
+    out="    Adding Metadata to $filename"
+    printf "%s %s " "$out" "${padding:${#out}}"
+    rev=$(git log -n 1  --pretty="format:%h (%ai)" -- "$file")
+    date=$(date +"%Y-%m-%d %H:%M:%S %z")
+    if ! script::metadata "$fileOut" "$rev" "$date" "$USER"; then
+      echo "ERROR"
+      exit 1
+    fi
+    echo "DONE"
+  fi
+done

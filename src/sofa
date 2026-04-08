@@ -1,0 +1,110 @@
+#!/bin/bash
+
+selfDir="$( cd "$(/usr/bin/dirname "${BASH_SOURCE[0]}")" ; /bin/pwd -P )"
+selfVer="### VERSION ###"
+selfRepo="https://github.com/jonesiscoding/sofa-cli"
+
+## region ###################################### Version Functions
+
+# shellcheck source=./lib/_version.sh
+source "$selfDir/lib/_version.sh"
+
+## endregion ################################### Version Functions
+
+# shellcheck source=./lib/_sofa.sh
+source "$selfDir/lib/_sofa.sh"
+
+## region ###################################### Input Handling
+
+isNext=false
+isLatest=false
+isEarliest=false
+sofaCache=$(sofa::json)
+sofa=$(cat "$sofaCache")
+query=()
+while [ "$1" != "" ]; do
+  case "$1" in
+      --version )
+        echo "sofa-cli v${selfVer}"
+        echo "(${selfRepo})"
+        exit 0
+        ;;
+      --device )
+        device="$2"
+        echo "$device" | grep -qE "^\-\-" && device=""
+        [ -n "$device" ] && shift;
+        sofa=$(sofa::filter::device $device <<< "$sofa");
+        ;;
+      --gte )
+        sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
+        shift;
+        ;;
+      --gt )
+        sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
+        shift;
+        ;;
+      --lte | --max )
+        sofa=$(sofa::filter::ver "lte" "$2" <<< "$sofa")
+        shift;
+        ;;
+      --lt )
+        sofa=$(sofa::filter::ver "lt" "$2" <<< "$sofa")
+        shift;
+        ;;
+      --eq )
+        sofa=$(sofa::filter::ver "eq" "$2" <<< "$sofa")
+        shift;
+        ;;
+      --model )
+        model="$2"
+        echo "$model" | grep -qE "^\-\-" && model=""
+        [ -n "$model" ] && shift;
+        sofa=$(sofa::filter::model $model <<< "$sofa");
+        ;;
+      --delay )
+        delay="$2"; shift;
+        sofa=$(sofa::filter::delay "$delay" <<< "$sofa")
+        ;;
+      --next )                       isNext=true      ;;
+      --latest )                     isLatest=true    ;;
+      --earliest )                   isEarliest=true  ;;
+      *)                             query+=("$1"); ;;
+  esac
+  shift # move to next kv pair
+done
+
+## endregion ################################### Input Handling
+
+## region ###################################### Controller
+
+if $isNext || $isLatest || $isEarliest; then
+  if $isNext; then
+    obj=$(sofa::ver::next <<< "$sofa")
+  elif $isLatest; then
+    obj=$(sofa::ver::latest <<< "$sofa")
+  elif $isEarliest; then
+    obj=$(sofa::ver::earliest <<< $sofa)
+  fi
+
+  if [ -n "$obj" ]; then
+    if output=$(jq -r "${query[@]}" <<< "$obj"); then
+      case "$(echo "$output" | xargs)" in
+        \{*\}|\[*\]) jq . <<< "$output" ;;
+        *)           echo "$output"     ;;
+      esac
+      exit 0
+    else
+      exit $?
+    fi
+  fi
+
+  exit 1
+fi
+
+if [ -n "$query" ]; then
+  jq "$query" <<< "$sofa"
+else
+  jq '.' <<< "$sofa"
+fi
+
+## endregion ################################### Controller
