@@ -1,5 +1,33 @@
 #!/bin/bash
 
+# @file        sofa
+# @brief       CLI for parsing & extracting SOFA feed data.
+# @description Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version
+# comparisons, as well as the output of a single matching SecurityRelease JSON object or property therein.
+#
+# This tool is not endorsed by or affiliated with the macadmins/sofa project.
+#
+# @option --version Displays Version
+# @option --device [optional_device]  Filter JSON by Device ID; will detect from system if not given
+# @option --model [optional_model]    Filter JSON by Model ID; will detect from system if not given
+# @option --delay [delay]             Filter JSON by delay, given in days
+# @option --eq [version]              Filter JSON by ProductVersion equal to given version
+# @option --gt [version]              Filter JSON by ProductVersion greater than given version
+# @option --lt [version]              Filter JSON by ProductVersion less than than given version
+# @option --gte [version]             Filter JSON by ProductVersion greater than or equal to than given version
+# @option --lte [version]             Filter JSON by ProductVersion greater than or equal to than given version
+# @option --latest                    Return JSON object for the latest SecurityRelease version, in filtered data
+# @option --earliest                  Return JSON object for the earliest SecurityRelease version, in filtered data
+# @option --next [version]            Return JSON object for the SecurityRelease w/ "next" version, in filtered data
+# @arg    $1                          Optional JQ style filters applied to JSON output
+#
+# @license   Apache v2 (https://github.com/jonesiscoding/sofa-cli/blob/main/LICENSE)
+# @copyright Copyright 2026 AMJones <am@jonesiscoding.com>
+# @version
+# @revision
+# @built
+# @uploaded
+
 selfDir="$( cd "$(/usr/bin/dirname "${BASH_SOURCE[0]}")" ; /bin/pwd -P )"
 selfVer="### VERSION ###"
 selfRepo="https://github.com/jonesiscoding/sofa-cli"
@@ -14,6 +42,52 @@ source "$selfDir/lib/_version.sh"
 # shellcheck source=./lib/_sofa.sh
 source "$selfDir/lib/_sofa.sh"
 
+## region ###################################### Usage Help
+
+# @description Outputs help text
+# @noargs
+# @stdout string Help Text
+function output-usage() {
+  echo ""
+  echo sofa-cli "$selfVer"
+  echo "  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons"
+  echo "  as well as the output of a single matching SecurityRelease JSON object or property therein."
+  echo ""
+  output-blue "Syntax:"
+  echo ""
+  echo "  sofa                                            (Displays the unfiltered SOFA feed)"
+  echo "  sofa --device --next 26.3.1 '.Product Version'  (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)"
+  echo "  sofa --lte 15.7                                 (Filters to versions less than or equal to 15.7.x)"
+  echo "  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)"
+  echo "  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)"
+  echo ""
+  output-blue "Filter Flags"
+  echo ""
+  echo "  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given"
+  echo "  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given"
+  echo "  --eq <version>              Filter JSON by ProductVersion equal to given version"
+  echo "  --gt <version>              Filter JSON by ProductVersion greater than given version"
+  echo "  --lt <version>              Filter JSON by ProductVersion less than than given version"
+  echo "  --gte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
+  echo "  --lte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
+  echo ""
+  echo "Extraction Flags"
+  echo ""
+  echo "These flags extract data from the feed, and are applied after any filter flags."
+  echo ""
+  echo "  --latest                    Extracts the SecurityRelease with the latest version number"
+  echo "  --earliest                  Extracts the SecurityRelease with the earliest version number"
+  echo "  --next <version>            Extracts the SecurityRelease with the next logical version to the given version"
+  echo ""
+  echo "Other Flags"
+  echo ""
+  echo "  --version         Shows version & quits."
+  echo "  --help            Shows this help text & quits."
+  echo ""
+}
+
+## endregion ################################### Usage Help
+
 ## region ###################################### Input Handling
 
 isNext=false
@@ -27,6 +101,10 @@ while [ "$1" != "" ]; do
       --version )
         echo "sofa-cli v${selfVer}"
         echo "(${selfRepo})"
+        exit 0
+        ;;
+      --help )
+        output-usage
         exit 0
         ;;
       --device )
