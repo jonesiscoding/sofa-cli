@@ -179,10 +179,16 @@ if $isNext || $isLatest || $isEarliest; then
   exit 1
 fi
 
-if [ -n "$query" ]; then
-  jq "$query" <<< "$sofa"
+# Show Output
+[ ${#query[@]} -eq 0 ] && query+=(.)
+if output=$(jq -r "${query[@]}" <<< "$obj"); then
+  case "$(echo "$output" | xargs)" in
+    \{*\}|\[*\]) jq . <<< "$output" ;;
+    *)           echo "$output"     ;;
+  esac
+  exit 0
 else
-  jq '.' <<< "$sofa"
+  exit $?
 fi
 
 ## endregion ################################### Controller
