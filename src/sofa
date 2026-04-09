@@ -114,7 +114,7 @@ while [ "$1" != "" ]; do
         device="$2"
         echo "$device" | grep -qE "^\-\-" && device=""
         [ -n "$device" ] && shift;
-        sofa=$(sofa::filter::device $device <<< "$sofa");
+        sofa=$(sofa::filter::device "$device" <<< "$sofa");
         ;;
       --gte )
         sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
@@ -140,7 +140,7 @@ while [ "$1" != "" ]; do
         model="$2"
         echo "$model" | grep -qE "^\-\-" && model=""
         [ -n "$model" ] && shift;
-        sofa=$(sofa::filter::model $model <<< "$sofa");
+        sofa=$(sofa::filter::model "$model" <<< "$sofa");
         ;;
       --delay )
         delay="$2"; shift;
@@ -164,7 +164,7 @@ if $isNext || $isLatest || $isEarliest; then
   elif $isLatest; then
     obj=$(sofa::ver::latest <<< "$sofa")
   elif $isEarliest; then
-    obj=$(sofa::ver::earliest <<< $sofa)
+    obj=$(sofa::ver::earliest <<< "$sofa")
   fi
 
   if [ -n "$obj" ]; then

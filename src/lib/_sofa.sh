@@ -84,7 +84,7 @@ function sofa::inner() {
   json=$(/bin/cat "$(sofa::json)")
   version="$1"
   outer="$2"
-  [ -z "$outer" ] && outer=$(sofa::outer $version)
+  [ -z "$outer" ] && outer=$(sofa::outer "$version")
 
   jq --arg v "$version" --arg outer "$outer" '.OSVersions[$outer | tonumber ].SecurityReleases | range(0; length) as $i | select(.[$i].ProductVersion == $v) | $i' <<< "$json"
 }
@@ -108,7 +108,7 @@ function sofa::indices::next() {
   outer="$1"
   inner="$2"
   maxVer="$3"
-  count=$(sofa::outer::count $outer <<< "$json")
+  count=$(sofa::outer::count "$outer" <<< "$json")
   max=$((count-1))
   [ "$inner" -gt "$max" ] && inner="$max"
   cur=$(sofa::indices::object "$outer" "$inner" <<< "$json")
@@ -124,22 +124,22 @@ function sofa::indices::next() {
 
   if [ "$outer" -gt "0" ]; then
     nOuter=$((outer-1))
-    count=$(sofa::outer::count $nOuter <<< "$json")
+    count=$(sofa::outer::count "$nOuter" <<< "$json")
     nInner=0
     if [ -n "$maxVer" ]; then
-      maxMaj=$(version::major $maxVer)
+      maxMaj=$(version::major "$maxVer")
       obj=$(sofa::indices::object "$nOuter" "$nInner" <<< "$json")
       objVer=$(sofa::obj::version <<< "$obj")
-      objMaj=$(version::major $objVer)
-      if ! version::is::under "$objVer" $maxMaj; then
+      objMaj=$(version::major "$objVer")
+      if ! version::is::under "$objVer" "$maxMaj"; then
         echo "$outer.$inner" && return 0
       else
         while [ "$nInner" -lt "$count" ]; do
           obj=$(sofa::indices::object "$nOuter" "$nInner" <<< "$json")
           objVer=$(sofa::obj::version <<< "$obj")
-          maxMin=$(echo $maxVer | awk -F"." '{ print $2 }')
-          maxRev=$(echo $maxVer | awk -F"." '{ print $3 }')
-          if version::is::under $objVer "$maxMaj" "$maxMin" "$maxRev"; then
+          maxMin=$(echo "$maxVer" | awk -F"." '{ print $2 }')
+          maxRev=$(echo "$maxVer" | awk -F"." '{ print $3 }')
+          if version::is::under "$objVer" "$maxMaj" "$maxMin" "$maxRev"; then
             echo "$nOuter.$nInner" && return 0
           fi
           nInner=$((nInner+1))
