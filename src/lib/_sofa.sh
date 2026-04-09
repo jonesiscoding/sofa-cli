@@ -159,6 +159,23 @@ function sofa::indices::next() {
 
 ## region ###################################### Getter Functions
 
+# @description Attempts to retrieve the device string of this Mac
+# @noargs
+# @internal
+# @stdout string Device String
+function _deviceString() {
+  local j
+
+  j=$(ioreg -arc IOPlatformExpertDevice -d 1 | plutil -extract 0.IORegistryEntryName raw -o - -)
+
+  # Fallback: if it's just 'Root', pull the Board ID (common on older Intel)
+  if [[ "$j" == "Root" ]]; then
+    j=$(ioreg -p IODeviceTree -n / -ar | grep -A 1 "board-id" | grep "string" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+  fi
+
+  echo "$j" && return 0
+}
+
 function sofa::ver::latest() {
   local json
 
@@ -216,9 +233,9 @@ sofa::device::latest() {
   [ ! -t 0 ] && json=$(cat)
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   device="$1"
-  [ -z "$device" ] && device=$(ioreg -arc IOPlatformExpertDevice -d 1 | plutil -extract 0.IORegistryEntryName raw -o - -)
+  [ -z "$device" ] && device=$(_deviceString)
 
-  sofa::ver::latest <<< "$(sofa::filter::device $device <<< "$json")"
+  sofa::ver::latest <<< "$(sofa::filter::device "$device" <<< "$json")"
 }
 
 sofa::device::next() {
@@ -227,9 +244,9 @@ sofa::device::next() {
   [ ! -t 0 ] && json=$(cat)
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   device="$1"
-  [ -z "$device" ] && device=$(ioreg -arc IOPlatformExpertDevice -d 1 | plutil -extract 0.IORegistryEntryName raw -o - -)
+  [ -z "$device" ] && device=$(_deviceString)
 
-  sofa::ver::next <<< "$(sofa::filter::device $device <<< "$json")"
+  sofa::ver::next <<< "$(sofa::filter::device "$device" <<< "$json")"
 }
 
 sofa::model::latest() {
