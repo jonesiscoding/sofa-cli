@@ -18,7 +18,7 @@ function sofa::json() {
 
   # Local store
   sofa_ver=$(echo "$online_json_url" | awk -F'/' '{ print $4 }')
-  json_cache_dir="/private/var/tmp/sofa/$sofa_ver"
+  json_cache_dir="$HOME/.sofa/$sofa_ver"
   json_cache="$json_cache_dir/macos_data_feed.json"
   etag_cache="$json_cache_dir/macos_data_feed_etag.txt"
   etag_cache_temp="$json_cache_dir/macos_data_feed_etag_temp.txt"
