@@ -24,7 +24,7 @@ function script::build() {
   inFile="$1"
   outFile="$2"
   outVersion="${3-:1.0}"
-  placeholder="${4-:##VERSION##}"
+  placeholder="${4:-##VERSION##}"
 
   if ! "$selfLib/inline.sh" --in-file "$inFile" --out-file "$outFile" --log-level silent; then
     return 1
