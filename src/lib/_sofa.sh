@@ -537,7 +537,7 @@ function sofa::filter::device() {
   [ ! -t 0 ] && json=$(cat)
   device="$1"
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
-  [ -z "$device" ] && device=$(ioreg -arc IOPlatformExpertDevice -d 1 | plutil -extract 0.IORegistryEntryName raw -o - -)
+  [ -z "$device" ] && device=$(_deviceString)
   jq --arg device "$device" '.OSVersions[].SecurityReleases |= map(select(.SupportedDevices | index($device)))' <<< "$json"
 }
 
