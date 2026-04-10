@@ -215,6 +215,8 @@ function sofa::ver::next() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   version="$1"
   maxVer="$2"
+  [ -z "$version" ] && version=$(sw_vers -productVersion)
+  [ -z "$version" ] && return 1
   major=$(version::major "$version")
   minor=$(version::minor "$version")
   outer=$(sofa::outer "$version")
@@ -257,6 +259,7 @@ sofa::model::latest() {
   model="$1"
   device="$2"
   [ -z "$model" ] && model=$(/usr/sbin/sysctl -n hw.model)
+  [ -z "$model" ] && return 1
 
   json=$(sofa::filter::model "$model" <<< "$json")
   if [ -n "$device" ]; then
@@ -274,6 +277,7 @@ sofa::model::next() {
   model="$1"
   device="$2"
   [ -z "$model" ] && model=$(/usr/sbin/sysctl -n hw.model)
+  [ -z "$model" ] && return 1
 
   json=$(sofa::filter::model "$model" <<< "$json")
   if [ -n "$device" ]; then
@@ -538,6 +542,7 @@ function sofa::filter::device() {
   device="$1"
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   [ -z "$device" ] && device=$(_deviceString)
+  [ -z "$device" ] && return 1
   jq --arg device "$device" '.OSVersions[].SecurityReleases |= map(select(.SupportedDevices | index($device)))' <<< "$json"
 }
 
