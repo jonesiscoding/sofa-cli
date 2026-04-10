@@ -137,6 +137,7 @@ while [ "$1" != "" ]; do
         device="$2"
         echo "$device" | grep -qE "^\-\-" && device=""
         [ -n "$device" ] && shift;
+        [ -z "$device" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a device with the --device flag." && exit 1
         sofa=$(sofa::filter::device "$device" <<< "$sofa");
         ;;
       --gte )
@@ -163,6 +164,7 @@ while [ "$1" != "" ]; do
         model="$2"
         echo "$model" | grep -qE "^\-\-" && model=""
         [ -n "$model" ] && shift;
+        [ -z "$model" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a model with the --model flag." && exit 1
         sofa=$(sofa::filter::model "$model" <<< "$sofa");
         ;;
       --delay )

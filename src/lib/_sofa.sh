@@ -2,6 +2,7 @@
 
 [ -z "$SOFA_FEED_URL" ] && SOFA_FEED_URL="https://sofafeed.macadmins.io/v2/macos_data_feed.json"
 [ -z "$SOFA_USER_AGENT" ] && SOFA_USER_AGENT="SOFA-Jamf/1.0"
+isMacOS=$(uname -s | grep -q "Darwin")
 
 ## region ###################################### JSON Retrieval Functions
 
@@ -166,6 +167,7 @@ function sofa::indices::next() {
 function _deviceString() {
   local j
 
+  if $isMacOS; then
   j=$(ioreg -arc IOPlatformExpertDevice -d 1 | plutil -extract 0.IORegistryEntryName raw -o - -)
 
   # Fallback: if it's just 'Root', pull the Board ID (common on older Intel)
@@ -174,6 +176,9 @@ function _deviceString() {
   fi
 
   echo "$j" && return 0
+  fi
+
+  return 1
 }
 
 function sofa::ver::latest() {
@@ -215,8 +220,7 @@ function sofa::ver::next() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   version="$1"
   maxVer="$2"
-  [ -z "$version" ] && version=$(sw_vers -productVersion)
-  [ -z "$version" ] && return 1
+  [ -z "$version" ] && $isMacOS && version=$(sw_vers -productVersion)
   major=$(version::major "$version")
   minor=$(version::minor "$version")
   outer=$(sofa::outer "$version")
@@ -258,7 +262,7 @@ sofa::model::latest() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   model="$1"
   device="$2"
-  [ -z "$model" ] && model=$(/usr/sbin/sysctl -n hw.model)
+  [ -z "$model" ] && $isMacOS && model=$(/usr/sbin/sysctl -n hw.model)
   [ -z "$model" ] && return 1
 
   json=$(sofa::filter::model "$model" <<< "$json")
@@ -276,7 +280,7 @@ sofa::model::next() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   model="$1"
   device="$2"
-  [ -z "$model" ] && model=$(/usr/sbin/sysctl -n hw.model)
+  [ -z "$model" ] && $isMacOS && model=$(/usr/sbin/sysctl -n hw.model)
   [ -z "$model" ] && return 1
 
   json=$(sofa::filter::model "$model" <<< "$json")
