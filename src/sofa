@@ -29,9 +29,32 @@
 # @built
 # @uploaded
 
-selfDir="$( cd "$(/usr/bin/dirname "${BASH_SOURCE[0]}")" ; /bin/pwd -P )"
+# Script Info
+selfDir="$( cd "$(/usr/bin/dirname "$(realpath "${BASH_SOURCE[0]})")")" || exit 1; /bin/pwd -P )"
 selfVer="### VERSION ###"
 selfRepo="https://github.com/jonesiscoding/sofa-cli"
+
+# Exit Codes
+exitNoJQ=2
+
+## region ###################################### Requirements
+
+[ -z "$JQ_BIN" ] &&
+  JQ_BIN=$(whereis -B /usr/bin /usr/local/bin /opt/homebrew/bin /opt/local/bin "$HOME/local/.bin" -f jq | awk '{print $2}')
+
+[ -z "$JQ_BIN" ] &&
+  JQ_BIN="$(d="/usr/local/bin"; test -w "$d" && echo "$d" || echo "$HOME/.local/bin")/jq"
+
+[ ! -f "$JQ_BIN" ] && [ "$JQ_BIN" != "/usr/bin/jq" ] &&
+  mkdir -p "$(dirname "$JQ_BIN")" && curl --silent -L -o "$JQ_BIN" https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64 &&
+  chmod 755 "$JQ_BIN" &&
+
+[ ! -f "$JQ_BIN" ] &&
+  >&2 echo "ERROR: JQ_BIN=$JQ_BIN, but 'jq' executable was not found." && exit "$exitNoJQ"
+
+! which jq > /dev/null 2>&1 && PATH="$(dirname "$JQ_BIN"):$PATH"
+
+## endregion ################################### Requirements
 
 ## region ###################################### Version Functions
 
@@ -184,7 +207,7 @@ fi
 
 # Show Output
 [ ${#query[@]} -eq 0 ] && query+=(.)
-if output=$(jq -r "${query[@]}" <<< "$obj"); then
+if output=$(jq -r "${query[@]}" <<< "$sofa"); then
   case "$(echo "$output" | xargs)" in
     \{*\}|\[*\]) jq . <<< "$output" ;;
     *)           echo "$output"     ;;
