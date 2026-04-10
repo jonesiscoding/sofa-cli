@@ -18,7 +18,6 @@
 # @option --gte [version]             Filter JSON by ProductVersion greater than or equal to than given version
 # @option --lte [version]             Filter JSON by ProductVersion greater than or equal to than given version
 # @option --latest                    Return JSON object for the latest SecurityRelease version, in filtered data
-# @option --earliest                  Return JSON object for the earliest SecurityRelease version, in filtered data
 # @option --next [version]            Return JSON object for the SecurityRelease w/ "next" version, in filtered data
 # @arg    $1                          Optional JQ style filters applied to JSON output
 #
@@ -102,7 +101,6 @@ function output-usage() {
   echo "These flags extract data from the feed, and are applied after any filter flags."
   echo ""
   echo "  --latest                    Extracts the SecurityRelease with the latest version number"
-  echo "  --earliest                  Extracts the SecurityRelease with the earliest version number"
   echo "  --next <version>            Extracts the SecurityRelease with the next logical version to the given version"
   echo ""
   echo "Other Flags"
@@ -179,7 +177,6 @@ while [ "$1" != "" ]; do
         [ -z "$myVersion" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a version with the --next flag." && exit 1
         ;;
       --latest )                     isLatest=true    ;;
-      --earliest )                   isEarliest=true  ;;
       *)                             query+=("$1"); ;;
   esac
   shift # move to next kv pair
