@@ -171,7 +171,13 @@ while [ "$1" != "" ]; do
         delay="$2"; shift;
         sofa=$(sofa::filter::delay "$delay" <<< "$sofa")
         ;;
-      --next )                       isNext=true      ;;
+      --next )
+        isNext=true
+        myVersion="$2"
+        echo "$myVersion" | grep -qE "^\-\-" && myVersion=""
+        [ -n "$myVersion" ] && shift;
+        [ -z "$myVersion" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a version with the --next flag." && exit 1
+        ;;
       --latest )                     isLatest=true    ;;
       --earliest )                   isEarliest=true  ;;
       *)                             query+=("$1"); ;;
@@ -185,7 +191,7 @@ done
 
 if $isNext || $isLatest || $isEarliest; then
   if $isNext; then
-    obj=$(sofa::ver::next <<< "$sofa")
+    obj=$(sofa::ver::next "$myVersion" <<< "$sofa")
   elif $isLatest; then
     obj=$(sofa::ver::latest <<< "$sofa")
   elif $isEarliest; then
