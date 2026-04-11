@@ -1,4 +1,4 @@
-# sofa-cli
+# SOFA CLI
 ## Overview
 
 `sofa-cli` is a CLI tool designed to parse and extract data from the MacAdmins SOFA JSON feed. It simplifies the 
@@ -90,6 +90,7 @@ sofa --delay 30 --latest '.ProductVersion'
 sofa --model "Mac16,1" --next 26.3.1
 # Example 2b: 26.3.2 will be returned for the Macbook Neo
 sofa --model "Mac17,5" --next 26.3.1
+
 # Example 3: Filter JSON by version less than or equal to a specific version
 sofa --lte 15.7
 ```
