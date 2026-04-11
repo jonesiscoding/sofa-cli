@@ -531,7 +531,7 @@ function sofa::filter::delay() {
   delay="$1"
   major="$2"
   if [ -n "$major" ]; then
-    json=$(sofa::filter::major "$major" <<< "$json")
+    json=$(sofa::filter::major "eq" "$major" <<< "$json")
   fi
 
   today=$(date "+%Y-%m-%d %H:%M:%S %z")
@@ -585,7 +585,7 @@ function sofa::filter::model() {
 
   modelMajor=$(jq --arg model "$model" '.Models[$model].OSVersions' <<< "$json")
 
-  sofa::filter::major "$modelMajor" <<< "$json"
+  sofa::filter::major "eq" "$modelMajor" <<< "$json"
 }
 
 ## region ###################################### Other Filter Functions
