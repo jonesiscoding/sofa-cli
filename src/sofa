@@ -29,7 +29,7 @@
 # @uploaded
 
 # Script Info
-selfDir="$( cd "$(/usr/bin/dirname "$(realpath "${BASH_SOURCE[0]})")")" || exit 1; /bin/pwd -P )"
+selfDir="$( cd "$(/usr/bin/dirname "$(realpath "${BASH_SOURCE[0]}")")" || exit 1; /bin/pwd -P )"
 selfVer="##VERSION##"
 selfRepo="https://github.com/jonesiscoding/sofa-cli"
 
