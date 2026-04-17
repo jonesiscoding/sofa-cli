@@ -547,7 +547,15 @@ function sofa::filter::device() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   [ -z "$device" ] && device=$(_deviceString)
   [ -z "$device" ] && return 1
-  jq --arg device "$device" '.OSVersions[].SecurityReleases |= map(select(.SupportedDevices | index($device)))' <<< "$json"
+
+  # Allow for instances where the SupportedDevices are incorrectly empty
+  # It seems better in these cases to leave the SecurityRelease in.
+  jq --arg device "$device" '.OSVersions[].SecurityReleases |= map(
+    select(
+      (.SupportedDevices == null) or
+      (.SupportedDevices | type != "array") or
+      (.SupportedDevices | index($device) != null)
+    ))' <<< "$json"
 }
 
 function sofa::filter::max() {
