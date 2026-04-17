@@ -66,7 +66,7 @@ function sofa::outer::count() {
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   outer="$1"
 
-  jq --arg outer "$outer" '.OSVersions[$outer | tonumber ].SecurityReleases | length' <<< "$sofa"
+  jq --arg outer "$outer" '.OSVersions[$outer | tonumber ].SecurityReleases | length' <<< "$json"
 }
 
 function sofa::outer() {
