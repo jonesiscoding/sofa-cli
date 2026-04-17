@@ -672,6 +672,60 @@ function sofa::obj::devices() {
   fi
 }
 
+# @brief Evaluates if the object's version is equal to the given (default: installed) version
+# @arg $1 string Comparison Version; on macOS, will default to the currently installed version
+# @stdin  string SecurityRelease JSON object
+# @exitcode 0 SecurityRelease Version == Given (default: Installed) Version
+# @exitcode 1 SecurityRelease Version != Given (default: Installed) Version
+function sofa::obj::eq() {
+  local objVer compVer
+
+  if [ ! -t 0 ]; then
+    objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
+    compVer="$1"
+    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    version::is::eq "$objVer" "$compVer"
+  else
+    return 1
+  fi
+}
+
+# @brief Evaluates if the object's version is greater than the given version
+# @arg $1 string Comparison Version; on macOS, will default to the currently installed version
+# @stdin  string SecurityRelease JSON object
+# @exitcode 0 SecurityRelease Version > Given (default: Installed) Version
+# @exitcode 1 SecurityRelease Version <= Given (default: Installed) Version
+function sofa::obj::gt() {
+  local objVer compVer
+
+  if [ ! -t 0 ]; then
+    objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
+    compVer="$1"
+    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    version::is::gt "$objVer" "$compVer"
+  else
+    return 1
+  fi
+}
+
+# @brief Evaluates if the object version is less given version
+# @arg $1 string Comparison Version; on macOS, will default to the currently installed version
+# @stdin  string SecurityRelease JSON object
+# @exitcode 0 SecurityRelease Version < Given (default: Installed) Version
+# @exitcode 1 SecurityRelease Version >= Given (default: Installed) Version
+function sofa::obj::lt() {
+  local objVer compVer
+
+  if [ ! -t 0 ]; then
+    objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
+    compVer="$1"
+    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    version::is::lt "$objVer" "$compVer"
+  else
+    return 1
+  fi
+}
+
 function sofa::obj::name() {
   if [ ! -t 0 ]; then
     jq -r ".UpdateName//empty" <<< "$(cat)"
