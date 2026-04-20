@@ -600,6 +600,25 @@ function sofa::filter::model() {
 
 ## region ###################################### Object Functions
 
+# @brief Calculates the age of the SecurityRelease in days
+# @stdin  string SecurityRelease JSON object
+# @stdout int    Age in Days
+# @exitcode 0    Success
+# @exitcode 1    Error
+sofa::obj::age() {
+  local releaseSec todaySec
+
+  if [ ! -t 0 ]; then
+    releaseSec=$(sofa::obj::date "%s" <<< "$(cat)")
+    todaySec=$(/bin/date +%s)
+
+    # Calculate the difference in seconds
+    echo $(((todaySec - releaseSec) / 86400)) && return 0
+  else
+    return 1
+  fi
+}
+
 function sofa::obj::build() {
   if [ ! -t 0 ]; then
     jq -r ".Build//empty" <<< "$(cat)"

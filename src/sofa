@@ -117,6 +117,7 @@ function output-usage() {
 isNext=false
 isLatest=false
 isEarliest=false
+isExtra=false
 sofaCache=$(sofa::json)
 sofa=$(cat "$sofaCache")
 query=()
@@ -158,6 +159,9 @@ while [ "$1" != "" ]; do
         sofa=$(sofa::filter::ver "eq" "$2" <<< "$sofa")
         shift;
         ;;
+      --extra )
+        isExtra=true;
+        ;;
       --model )
         model="$2"
         echo "$model" | grep -qE "^\-\-" && model=""
@@ -196,6 +200,10 @@ if $isNext || $isLatest || $isEarliest; then
   fi
 
   if [ -n "$obj" ]; then
+    if $isExtra; then
+      age=$(sofa::obj::age <<< "$obj")
+      obj=$(jq --arg age "$age" '.DaysSinceRelease = ($age | tonumber)' <<< "$obj" )
+    fi
     if output=$(jq -r "${query[@]}" <<< "$obj"); then
       case "$(echo "$output" | xargs)" in
         \{*\}|\[*\]) jq . <<< "$output" ;;
