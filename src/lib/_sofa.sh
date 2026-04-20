@@ -4,6 +4,11 @@
 [ -z "$SOFA_USER_AGENT" ] && SOFA_USER_AGENT="SOFA-Jamf/1.0"
 isMacOS=$(uname -s | grep -q "Darwin")
 
+if [ -z "$SOFA_CACHE_DIR" ]; then
+  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && [[ "$RU" != "root" ]] && eval echo "~${RU}")
+  SOFA_CACHE_DIR="$SOFA_USER_HOME/Library/Caches/sofa"
+fi
+
 ## region ###################################### JSON Retrieval Functions
 
 # @description Retrieves the SOFA JSON feed, allowing for caching via etag
@@ -19,7 +24,7 @@ function sofa::json() {
 
   # Local store
   sofa_ver=$(echo "$online_json_url" | awk -F'/' '{ print $4 }')
-  json_cache_dir="$HOME/.sofa/$sofa_ver"
+  json_cache_dir="$SOFA_CACHE_DIR/$sofa_ver"
   json_cache="$json_cache_dir/macos_data_feed.json"
   etag_cache="$json_cache_dir/macos_data_feed_etag.txt"
   etag_cache_temp="$json_cache_dir/macos_data_feed_etag_temp.txt"
@@ -45,6 +50,12 @@ function sofa::json() {
   else
     # No e-tag or SOFA json file cached, proceeding to download SOFA json file
     /usr/bin/curl --compressed --location --max-time 3 --silent --header "User-Agent: $user_agent" "$online_json_url" --etag-save "$etag_cache" --output "$json_cache"
+  fi
+
+  # Make sure the user can access their own cache files (prevents issues when run with sudo)
+  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && [[ "$RU" != "root" ]] && eval echo "~${RU}")
+  if [[ -n "$SOFA_HOME" && "$(cd "$SOFA_CACHE_DIR" 2>/dev/null && pwd -P)" == "$SOFA_HOME"/* ]]; then
+    chown -R "$(stat -f "%u:%g" "$SOFA_HOME")" "$SOFA_CACHE_DIR"
   fi
 
   if [ -f "$json_cache" ]; then
