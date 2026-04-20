@@ -645,10 +645,10 @@ function sofa::obj::date() {
   if [ ! -t 0 ]; then
     feedDate=$(jq -r ".ReleaseDate//empty" <<< "$(cat)")
     if [ -n "$feedDate" ]; then
+      # From UTC to Local
       localDate=$(date -j -u -f "%Y-%m-%dT%H:%M:%SZ" "$feedDate" +"$tempFormat")
-      if [ "$tempFormat" != "$format" ]; then
-        localDate=$(date -j -u -f "$tempFormat" "$localDate" +"$format")
-      fi
+      # Reformat with Proper Format
+      localDate=$(date -j -f "$tempFormat" "$localDate" +"$format")
       echo "$localDate" && return 0
     fi
   fi
