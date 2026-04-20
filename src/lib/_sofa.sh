@@ -640,7 +640,7 @@ function sofa::obj::date() {
   if echo "$format" | grep -E "(%Z|%z)"; then
     tempFormat="$format"
   else
-    tempFormat="$format %z"
+    tempFormat="%Y-%m-%d %H:%M:%S %z"
   fi
   if [ ! -t 0 ]; then
     feedDate=$(jq -r ".ReleaseDate//empty" <<< "$(cat)")
