@@ -190,8 +190,6 @@ if $isNext || $isLatest || $isEarliest; then
     obj=$(sofa::ver::next "$myVersion" <<< "$sofa")
   elif $isLatest; then
     obj=$(sofa::ver::latest <<< "$sofa")
-  elif $isEarliest; then
-    obj=$(sofa::ver::earliest <<< "$sofa")
   fi
 
   if [ -n "$obj" ]; then
