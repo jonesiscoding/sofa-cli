@@ -55,13 +55,8 @@ exitNoJQ=2
 
 ## endregion ################################### Requirements
 
-## region ###################################### Version Functions
-
 # shellcheck source=./lib/_version.sh
 source "$selfDir/lib/_version.sh"
-
-## endregion ################################### Version Functions
-
 # shellcheck source=./lib/_sofa.sh
 source "$selfDir/lib/_sofa.sh"
 
