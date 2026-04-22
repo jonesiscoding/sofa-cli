@@ -8,7 +8,7 @@
 # This tool is not endorsed by or affiliated with the macadmins/sofa project.
 # This tool requires that 'jq' is installed, this is standard on macOS 15+
 #
-# @option --version Displays Version
+# @option --version                   Displays Version
 # @option --device [optional_device]  Filter JSON by Device ID; will detect from system if not given
 # @option --model [optional_model]    Filter JSON by Model ID; will detect from system if not given
 # @option --delay [delay]             Filter JSON by delay, given in days
