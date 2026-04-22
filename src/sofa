@@ -47,43 +47,45 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   # @noargs
   # @stdout string Help Text
   function output-usage() {
-    echo ""
-    echo sofa-cli "$selfVer"
-    echo "  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons"
-    echo "  as well as the output of a single matching SecurityRelease JSON object or property therein."
-    echo ""
-    echo "Syntax:"
-    echo ""
-    echo "  sofa                                            (Displays the unfiltered SOFA feed)"
-    echo "  sofa --device --next 26.3.1 '.Product Version'  (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)"
-    echo "  sofa --lte 15.7                                 (Filters to versions less than or equal to 15.7.x)"
-    echo "  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)"
-    echo "  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)"
-    echo ""
-    echo "Query language appropriate for JQ may be used after any flags to further filter results."
-    echo ""
-    echo "Filter Flags"
-    echo ""
-    echo "  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given"
-    echo "  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given"
-    echo "  --eq <version>              Filter JSON by ProductVersion equal to given version"
-    echo "  --gt <version>              Filter JSON by ProductVersion greater than given version"
-    echo "  --lt <version>              Filter JSON by ProductVersion less than than given version"
-    echo "  --gte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
-    echo "  --lte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
-    echo ""
-    echo "Extraction Flags"
-    echo ""
-    echo "These flags extract data from the feed, and are applied after any filter flags."
-    echo ""
-    echo "  --latest                    Extracts the SecurityRelease with the latest version number"
-    echo "  --next <version>            Extracts the SecurityRelease with the next logical version to the given version"
-    echo ""
-    echo "Other Flags"
-    echo ""
-    echo "  --version                   Shows version & quits."
-    echo "  --help                      Shows this help text & quits."
-    echo ""
+    cat << EOF
+
+sofa-cli $selfVer
+  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons
+  as well as the output of a single matching SecurityRelease JSON object or property therein.
+
+Syntax:
+
+  sofa                                            (Displays the unfiltered SOFA feed)
+  sofa --device --next 26.3.1 '.ProductVersion'   (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)
+  sofa --lte 15.7                                 (Filters to versions less than or equal to 15.7.x)
+  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)
+  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)
+
+Query language appropriate for JQ may be used after any flags to further filter results.
+
+Filter Flags
+
+  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given
+  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given
+  --eq <version>              Filter JSON by ProductVersion equal to the given version
+  --gt <version>              Filter JSON by ProductVersion greater than the given version
+  --lt <version>              Filter JSON by ProductVersion less than given version
+  --gte <version>             Filter JSON by ProductVersion greater than or equal to the given version
+  --lte <version>             Filter JSON by ProductVersion greater than or equal to the given version
+
+Extraction Flags
+
+These flags extract data from the feed, and are applied after any filter flags.
+
+  --latest                    Extracts the SecurityRelease with the latest version number
+  --next <version>            Extracts the SecurityRelease with the next logical version to the given version
+
+Other Flags
+
+  --version                   Shows version & quits.
+  --help                      Shows this help text & quits.
+
+EOF
   }
 
 ## endregion ################################### Usage Help
