@@ -5,8 +5,8 @@
 isMacOS=$(uname -s | grep -q "Darwin")
 
 if [ -z "$SOFA_CACHE_DIR" ]; then
-  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && [[ "$RU" != "root" ]] && eval echo "~${RU}")
-  SOFA_CACHE_DIR="$SOFA_USER_HOME/Library/Caches/sofa"
+  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && eval echo "~${RU}")
+  SOFA_CACHE_DIR="$SOFA_USER_HOME/.cache/sofa"
 fi
 
 ## region ###################################### JSON Retrieval Functions
@@ -53,7 +53,7 @@ function sofa::json() {
   fi
 
   # Make sure the user can access their own cache files (prevents issues when run with sudo)
-  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && [[ "$RU" != "root" ]] && eval echo "~${RU}")
+  SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && eval echo "~${RU}")
   if [[ -n "$SOFA_HOME" && "$(cd "$SOFA_CACHE_DIR" 2>/dev/null && pwd -P)" == "$SOFA_HOME"/* ]]; then
     chown -R "$(stat -f "%u:%g" "$SOFA_HOME")" "$SOFA_CACHE_DIR"
   fi
