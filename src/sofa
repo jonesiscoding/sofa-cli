@@ -95,7 +95,6 @@ assert::jq || exit $?
 
 isNext=false
 isLatest=false
-isEarliest=false
 isExtra=false
 sofaCache=$(sofa::json)
 sofa=$(cat "$sofaCache")
@@ -169,7 +168,7 @@ done
 
 ## region ###################################### Controller
 
-if $isNext || $isLatest || $isEarliest; then
+if $isNext || $isLatest; then
   if $isNext; then
     obj=$(sofa::ver::next "$myVersion" <<< "$sofa")
   elif $isLatest; then
