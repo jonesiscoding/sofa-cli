@@ -6,7 +6,7 @@ isMacOS=$(uname -s | grep -q "Darwin")
 
 if [ -z "$SOFA_CACHE_DIR" ]; then
   SOFA_HOME=$(RU="${SUDO_USER:-$USER}" && eval echo "~${RU}")
-  SOFA_CACHE_DIR="$SOFA_USER_HOME/.cache/sofa"
+  SOFA_CACHE_DIR="$SOFA_HOME/.cache/sofa"
 fi
 
 ## region ###################################### JSON Retrieval Functions
