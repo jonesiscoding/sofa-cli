@@ -33,32 +33,10 @@ selfDir="$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P )"
 selfVer="##VERSION##"
 selfRepo="https://github.com/jonesiscoding/sofa-cli"
 
-# Exit Codes
-exitNoJQ=2
-
-## region ###################################### Requirements
-
-[ -z "$JQ_BIN" ] &&
-  JQ_BIN=$(whereis -B /usr/bin /usr/local/bin /opt/homebrew/bin /opt/local/bin "$HOME/local/.bin" -f jq | awk '{print $2}')
-
-[ -z "$JQ_BIN" ] &&
-  JQ_BIN="$(d="/usr/local/bin"; test -w "$d" && echo "$d" || echo "$HOME/.local/bin")/jq"
-
-[ ! -f "$JQ_BIN" ] && [ "$JQ_BIN" != "/usr/bin/jq" ] &&
-  mkdir -p "$(dirname "$JQ_BIN")" &&
-  file="jq-$(uname -s | sed 's/Darwin/macos/; s/L/l/')-$(uname -m | sed 's/x86_/amd/; s/aarch/arm/')" &&
-  curl -s -L -o "$JQ_BIN" "https://github.com/jqlang/jq/releases/latest/download/$file" &&
-  chmod 755 "$JQ_BIN"
-
-[ ! -f "$JQ_BIN" ] &&
-  >&2 echo "ERROR: JQ_BIN=$JQ_BIN, but 'jq' executable was not found." && exit "$exitNoJQ"
-
-! which jq > /dev/null 2>&1 && PATH="$(dirname "$JQ_BIN"):$PATH"
-
-## endregion ################################### Requirements
-
 # shellcheck source=./lib/_version.sh
 source "$selfDir/lib/_version.sh"
+# shellcheck source=./lib/_jq.sh
+source "$selfDir/lib/_jq.sh"
 # shellcheck source=./lib/_sofa.sh
 source "$selfDir/lib/_sofa.sh"
 
@@ -110,6 +88,10 @@ function output-usage() {
 ## endregion ################################### Usage Help
 
 ## region ###################################### Input Handling
+
+# jq, where are you?
+assert::jq || exit $?
+! which jq > /dev/null 2>&1 && PATH="$(dirname "$JQ_BIN"):$PATH"
 
 isNext=false
 isLatest=false
