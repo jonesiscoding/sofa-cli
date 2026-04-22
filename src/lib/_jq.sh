@@ -20,4 +20,6 @@ function assert::jq() {
 
   [ ! -f "$JQ_BIN" ] &&
     >&2 echo "ERROR: JQ_BIN=$JQ_BIN, but 'jq' executable was not found." && return "$exitNoJQ"
+
+  return 0
 }
