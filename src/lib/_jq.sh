@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## region ###################################### JQ Dependency
+
 # Exit Codes
 exitNoJQ=2
 
@@ -23,3 +25,5 @@ function assert::jq() {
 
   return 0
 }
+
+## endregion ################################### JQ Dependency
