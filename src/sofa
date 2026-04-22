@@ -81,8 +81,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo ""
     echo "Other Flags"
     echo ""
-    echo "  --version         Shows version & quits."
-    echo "  --help            Shows this help text & quits."
+    echo "  --version                   Shows version & quits."
+    echo "  --help                      Shows this help text & quits."
     echo ""
   }
 
