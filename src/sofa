@@ -42,168 +42,170 @@ source "$selfDir/lib/_sofa.sh"
 
 ## region ###################################### Usage Help
 
-# @description Outputs help text
-# @noargs
-# @stdout string Help Text
-function output-usage() {
-  echo ""
-  echo sofa-cli "$selfVer"
-  echo "  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons"
-  echo "  as well as the output of a single matching SecurityRelease JSON object or property therein."
-  echo ""
-  echo "Syntax:"
-  echo ""
-  echo "  sofa                                            (Displays the unfiltered SOFA feed)"
-  echo "  sofa --device --next 26.3.1 '.Product Version'  (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)"
-  echo "  sofa --lte 15.7                                 (Filters to versions less than or equal to 15.7.x)"
-  echo "  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)"
-  echo "  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)"
-  echo ""
-  echo "Query language appropriate for JQ may be used after any flags to further filter results."
-  echo ""
-  echo "Filter Flags"
-  echo ""
-  echo "  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given"
-  echo "  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given"
-  echo "  --eq <version>              Filter JSON by ProductVersion equal to given version"
-  echo "  --gt <version>              Filter JSON by ProductVersion greater than given version"
-  echo "  --lt <version>              Filter JSON by ProductVersion less than than given version"
-  echo "  --gte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
-  echo "  --lte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
-  echo ""
-  echo "Extraction Flags"
-  echo ""
-  echo "These flags extract data from the feed, and are applied after any filter flags."
-  echo ""
-  echo "  --latest                    Extracts the SecurityRelease with the latest version number"
-  echo "  --next <version>            Extracts the SecurityRelease with the next logical version to the given version"
-  echo ""
-  echo "Other Flags"
-  echo ""
-  echo "  --version         Shows version & quits."
-  echo "  --help            Shows this help text & quits."
-  echo ""
-}
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  # @description Outputs help text
+  # @noargs
+  # @stdout string Help Text
+  function output-usage() {
+    echo ""
+    echo sofa-cli "$selfVer"
+    echo "  Allows for easier filtering of the MacAdmins SOFA JSON feed by device, model, delay, or version comparisons"
+    echo "  as well as the output of a single matching SecurityRelease JSON object or property therein."
+    echo ""
+    echo "Syntax:"
+    echo ""
+    echo "  sofa                                            (Displays the unfiltered SOFA feed)"
+    echo "  sofa --device --next 26.3.1 '.Product Version'  (Skips 26.3.2 to display 26.4 unless you on a MacBook Neo)"
+    echo "  sofa --lte 15.7                                 (Filters to versions less than or equal to 15.7.x)"
+    echo "  sofa --lte 15.7.4                               (Filters to versions less than or equal to 15.7.4)"
+    echo "  sofa --model Mac15,13 --latest                  (Shows SecurityRelease JSON for latest version eligible)"
+    echo ""
+    echo "Query language appropriate for JQ may be used after any flags to further filter results."
+    echo ""
+    echo "Filter Flags"
+    echo ""
+    echo "  --device <optional_device>  Filter JSON by Device ID; will detect from system if not given"
+    echo "  --model <optional_model>    Filter JSON by Model ID; will detect from system if not given"
+    echo "  --eq <version>              Filter JSON by ProductVersion equal to given version"
+    echo "  --gt <version>              Filter JSON by ProductVersion greater than given version"
+    echo "  --lt <version>              Filter JSON by ProductVersion less than than given version"
+    echo "  --gte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
+    echo "  --lte <version>             Filter JSON by ProductVersion greater than or equal to than given version"
+    echo ""
+    echo "Extraction Flags"
+    echo ""
+    echo "These flags extract data from the feed, and are applied after any filter flags."
+    echo ""
+    echo "  --latest                    Extracts the SecurityRelease with the latest version number"
+    echo "  --next <version>            Extracts the SecurityRelease with the next logical version to the given version"
+    echo ""
+    echo "Other Flags"
+    echo ""
+    echo "  --version         Shows version & quits."
+    echo "  --help            Shows this help text & quits."
+    echo ""
+  }
 
 ## endregion ################################### Usage Help
 
 ## region ###################################### Input Handling
 
-# jq, where are you?
-assert::jq || exit $?
-! which jq > /dev/null 2>&1 && PATH="$(dirname "$JQ_BIN"):$PATH"
+  assert::jq || exit "$exitNoJQ"
+  # jq, where are you?
+  ! which jq > /dev/null 2>&1 && PATH="$(dirname "$JQ_BIN"):$PATH"
 
-isNext=false
-isLatest=false
-isExtra=false
-sofaCache=$(sofa::json)
-sofa=$(cat "$sofaCache")
-query=()
-while [ "$1" != "" ]; do
-  case "$1" in
-      --version )
-        echo "sofa-cli v${selfVer}"
-        echo "(${selfRepo})"
+  isNext=false
+  isLatest=false
+  isExtra=false
+  sofaCache=$(sofa::json)
+  sofa=$(cat "$sofaCache")
+  query=()
+  while [ "$1" != "" ]; do
+    case "$1" in
+        --version )
+          echo "sofa-cli v${selfVer}"
+          echo "(${selfRepo})"
+          exit 0
+          ;;
+        --help )
+          output-usage
+          exit 0
+          ;;
+        --device )
+          device="$2"
+          echo "$device" | grep -qE "^\-\-" && device=""
+          [ -n "$device" ] && shift;
+          [ -z "$device" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a device with the --device flag." && exit 1
+          sofa=$(sofa::filter::device "$device" <<< "$sofa");
+          ;;
+        --gte )
+          sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
+          shift;
+          ;;
+        --gt )
+          sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
+          shift;
+          ;;
+        --lte | --max )
+          sofa=$(sofa::filter::ver "lte" "$2" <<< "$sofa")
+          shift;
+          ;;
+        --lt )
+          sofa=$(sofa::filter::ver "lt" "$2" <<< "$sofa")
+          shift;
+          ;;
+        --eq )
+          sofa=$(sofa::filter::ver "eq" "$2" <<< "$sofa")
+          shift;
+          ;;
+        --extra )
+          isExtra=true;
+          ;;
+        --model )
+          model="$2"
+          echo "$model" | grep -qE "^\-\-" && model=""
+          [ -n "$model" ] && shift;
+          [ -z "$model" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a model with the --model flag." && exit 1
+          sofa=$(sofa::filter::model "$model" <<< "$sofa");
+          ;;
+        --delay )
+          delay="$2"; shift;
+          sofa=$(sofa::filter::delay "$delay" <<< "$sofa")
+          ;;
+        --next )
+          isNext=true
+          myVersion="$2"
+          echo "$myVersion" | grep -qE "^\-\-" && myVersion=""
+          [ -n "$myVersion" ] && shift;
+          [ -z "$myVersion" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a version with the --next flag." && exit 1
+          ;;
+        --latest )                     isLatest=true    ;;
+        *)                             query+=("$1"); ;;
+    esac
+    shift # move to next kv pair
+  done
+
+  ## endregion ################################### Input Handling
+
+  ## region ###################################### Controller
+
+  if $isNext || $isLatest; then
+    if $isNext; then
+      obj=$(sofa::ver::next "$myVersion" <<< "$sofa")
+    elif $isLatest; then
+      obj=$(sofa::ver::latest <<< "$sofa")
+    fi
+
+    if [ -n "$obj" ]; then
+      if $isExtra; then
+        age=$(sofa::obj::age <<< "$obj")
+        obj=$(jq --arg age "$age" '.DaysSinceRelease = ($age | tonumber)' <<< "$obj" )
+      fi
+      if output=$(jq -r "${query[@]}" <<< "$obj"); then
+        case "$(echo "$output" | xargs)" in
+          \{*\}|\[*\]) jq . <<< "$output" ;;
+          *)           echo "$output"     ;;
+        esac
         exit 0
-        ;;
-      --help )
-        output-usage
-        exit 0
-        ;;
-      --device )
-        device="$2"
-        echo "$device" | grep -qE "^\-\-" && device=""
-        [ -n "$device" ] && shift;
-        [ -z "$device" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a device with the --device flag." && exit 1
-        sofa=$(sofa::filter::device "$device" <<< "$sofa");
-        ;;
-      --gte )
-        sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
-        shift;
-        ;;
-      --gt )
-        sofa=$(sofa::filter::ver "gte" "$2" <<< "$sofa")
-        shift;
-        ;;
-      --lte | --max )
-        sofa=$(sofa::filter::ver "lte" "$2" <<< "$sofa")
-        shift;
-        ;;
-      --lt )
-        sofa=$(sofa::filter::ver "lt" "$2" <<< "$sofa")
-        shift;
-        ;;
-      --eq )
-        sofa=$(sofa::filter::ver "eq" "$2" <<< "$sofa")
-        shift;
-        ;;
-      --extra )
-        isExtra=true;
-        ;;
-      --model )
-        model="$2"
-        echo "$model" | grep -qE "^\-\-" && model=""
-        [ -n "$model" ] && shift;
-        [ -z "$model" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a model with the --model flag." && exit 1
-        sofa=$(sofa::filter::model "$model" <<< "$sofa");
-        ;;
-      --delay )
-        delay="$2"; shift;
-        sofa=$(sofa::filter::delay "$delay" <<< "$sofa")
-        ;;
-      --next )
-        isNext=true
-        myVersion="$2"
-        echo "$myVersion" | grep -qE "^\-\-" && myVersion=""
-        [ -n "$myVersion" ] && shift;
-        [ -z "$myVersion" ] && ! $isMacOS && echo "${RED}ERROR:${RESET} You must specify a version with the --next flag." && exit 1
-        ;;
-      --latest )                     isLatest=true    ;;
-      *)                             query+=("$1"); ;;
-  esac
-  shift # move to next kv pair
-done
+      else
+        exit $?
+      fi
+    fi
 
-## endregion ################################### Input Handling
-
-## region ###################################### Controller
-
-if $isNext || $isLatest; then
-  if $isNext; then
-    obj=$(sofa::ver::next "$myVersion" <<< "$sofa")
-  elif $isLatest; then
-    obj=$(sofa::ver::latest <<< "$sofa")
+    exit 1
   fi
 
-  if [ -n "$obj" ]; then
-    if $isExtra; then
-      age=$(sofa::obj::age <<< "$obj")
-      obj=$(jq --arg age "$age" '.DaysSinceRelease = ($age | tonumber)' <<< "$obj" )
-    fi
-    if output=$(jq -r "${query[@]}" <<< "$obj"); then
-      case "$(echo "$output" | xargs)" in
-        \{*\}|\[*\]) jq . <<< "$output" ;;
-        *)           echo "$output"     ;;
-      esac
-      exit 0
-    else
-      exit $?
-    fi
+  # Show Output
+  [ ${#query[@]} -eq 0 ] && query+=(.)
+  if output=$(jq -r "${query[@]}" <<< "$sofa"); then
+    case "$(echo "$output" | xargs)" in
+      \{*\}|\[*\]) jq . <<< "$output" ;;
+      *)           echo "$output"     ;;
+    esac
+    exit 0
+  else
+    exit $?
   fi
-
-  exit 1
-fi
-
-# Show Output
-[ ${#query[@]} -eq 0 ] && query+=(.)
-if output=$(jq -r "${query[@]}" <<< "$sofa"); then
-  case "$(echo "$output" | xargs)" in
-    \{*\}|\[*\]) jq . <<< "$output" ;;
-    *)           echo "$output"     ;;
-  esac
-  exit 0
-else
-  exit $?
 fi
 
 ## endregion ################################### Controller
