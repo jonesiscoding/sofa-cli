@@ -83,7 +83,8 @@ function sofa::outer::count() {
 function sofa::outer() {
   local json version major
 
-  json=$(/bin/cat "$(sofa::json)")
+  [ ! -t 0 ] && json=$(cat)
+  [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   version="$1"
   major=$(version::major "$version")
 
@@ -93,10 +94,11 @@ function sofa::outer() {
 function sofa::inner() {
   local json version outer
 
-  json=$(/bin/cat "$(sofa::json)")
+  [ ! -t 0 ] && json=$(cat)
+  [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   version="$1"
   outer="$2"
-  [ -z "$outer" ] && outer=$(sofa::outer "$version")
+  [ -z "$outer" ] && outer=$(sofa::outer "$version" <<< "$json")
 
   jq --arg v "$version" --arg outer "$outer" '.OSVersions[$outer | tonumber ].SecurityReleases | range(0; length) as $i | select(.[$i].ProductVersion == $v) | $i' <<< "$json"
 }
@@ -234,9 +236,8 @@ function sofa::ver::next() {
   [ -z "$version" ] && $isMacOS && version=$(sw_vers -productVersion)
   major=$(version::major "$version")
   minor=$(version::minor "$version")
-  outer=$(sofa::outer "$version")
-  inner=$(sofa::inner "$version" "$outer")
-
+  outer=$(sofa::outer "$version" <<< "$json")
+  inner=$(sofa::inner "$version" "$outer" <<< "$json")
   indices=$(sofa::indices::next "$outer" "$inner" "$maxVer" <<< "$json")
   nOuter=$(echo "$indices" | awk -F"." '{ print $1 }')
   nInner=$(echo "$indices" | awk -F"." '{ print $2 }')
@@ -545,7 +546,7 @@ function sofa::filter::delay() {
     json=$(sofa::filter::major "eq" "$major" <<< "$json")
   fi
 
-  today=$(date "+%Y-%m-%d %H:%M:%S %z")
+  today=$(date +"%Y-%m-%d %H:%M:%S %z")
   cutoff=$(date -j -u -f "%Y-%m-%d %H:%M:%S %z" -v "-${delay}d" "${today}" +"%Y-%m-%dT%H:%M:%SZ")
   jq --arg date "$cutoff" '.OSVersions |= map(.SecurityReleases |= map(select(.ReleaseDate <= $date)))' <<< "$json"
 }
