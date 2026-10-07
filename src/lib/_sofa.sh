@@ -547,8 +547,8 @@ function sofa::filter::delay() {
     if [ -n "$minor" ]; then
       json=$(sofa::filter::minor "eq" "$major" "$minor" <<< "$json")
     else
-    json=$(sofa::filter::major "eq" "$major" <<< "$json")
-  fi
+      json=$(sofa::filter::major "eq" "$major" <<< "$json")
+    fi
   fi
 
   today=$(date +"%Y-%m-%d %H:%M:%S %z")
