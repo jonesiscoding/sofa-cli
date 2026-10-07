@@ -714,7 +714,7 @@ function sofa::obj::eq() {
   if [ ! -t 0 ]; then
     objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
     compVer="$1"
-    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    [[ -z "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
     version::is::eq "$objVer" "$compVer"
   else
     return 1
@@ -732,7 +732,7 @@ function sofa::obj::gt() {
   if [ ! -t 0 ]; then
     objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
     compVer="$1"
-    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    [[ -z "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
     version::is::gt "$objVer" "$compVer"
   else
     return 1
@@ -750,7 +750,7 @@ function sofa::obj::lt() {
   if [ ! -t 0 ]; then
     objVer=$(jq -r ".ProductVersion//empty" <<< "$(cat)")
     compVer="$1"
-    [[ -n "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
+    [[ -z "$compVer" ]] && $isMacOS && compVer=$(/usr/bin/sw_vers -productVersion)
     version::is::lt "$objVer" "$compVer"
   else
     return 1
