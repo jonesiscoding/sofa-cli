@@ -536,14 +536,19 @@ function sofa::filter::lte::patch() {
 ## region ###################################### Other Filters
 
 function sofa::filter::delay() {
-  local json delay major today cutoff
+  local json delay major minor today cutoff
 
   [ ! -t 0 ] && json=$(cat)
   [ -z "$json" ] && json=$(/bin/cat "$(sofa::json)")
   delay="$1"
   major="$2"
   if [ -n "$major" ]; then
+    minor="$3"
+    if [ -n "$minor" ]; then
+      json=$(sofa::filter::minor "eq" "$major" "$minor" <<< "$json")
+    else
     json=$(sofa::filter::major "eq" "$major" <<< "$json")
+  fi
   fi
 
   today=$(date +"%Y-%m-%d %H:%M:%S %z")
